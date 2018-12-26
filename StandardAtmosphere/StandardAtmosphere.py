@@ -1,8 +1,10 @@
+import scipy
+
 # Constants
 
 R = 287.05
 K = 273.15
-g = 9.800
+g = 9.80665
 
 temperature_at_sea_level = 15.0 + K
 pressure_at_sea_level = 101325
@@ -13,12 +15,12 @@ molar_mass_nitrogen = 28.0
 molar_mass_air = 28.97
 
 atmospheric_layers = [
-	('troposphere', 0.0, 11000.0, -6.5),
-	('stratosphere', 11000.0, 20000.0, 1),
-	('stratosphere', 20000.0, 32000.0, 2.8),
+	('troposphere', 0.0, 11000.0, -0.0065),
+	('stratosphere', 11000.0, 20000.0, 0.001),
+	('stratosphere', 20000.0, 32000.0, 0.0028),
 	('stratosphere', 32000.0, 47000.0, 0.0),
-	('mesosphere', 47000.0, 51000.0, -2.8),
-	('mesosphere', 51000.0, 71000.0, -2.0)
+	('mesosphere', 47000.0, 51000.0, -0.0028),
+	('mesosphere', 51000.0, 71000.0, -0.002)
 	]
 
 def pressure(
@@ -55,3 +57,35 @@ def balloon_lift_gas(
 	return volume*g*density_ambient \
 		* (1 - molar_mass_gas/molar_mass_ambient)
 		
+def temperature_difference(
+	height, lapse_rate=atmospheric_layers[0][-1]):
+	return height*lapse_rate
+	
+def pressure_rate_dyn(
+	temperature_target,
+	temperature_base=temperature_at_sea_level,
+	lapse_rate=atmospheric_layers[0][-1],
+	R=R, g=g):
+	return (temperature_target/temperature_base)**(-g/(lapse_rate*R))
+	
+def pressure_rate_stat(
+	height_target,
+	height_base=atmospheric_layers[0][1],
+	temperature_ambient=temperature_at_sea_level,
+	R=R, g=g):
+	return scipy.exp(-g/(R*temperature_ambient)*(height_target-height_base))
+	
+def density_rate_dyn(
+	temperature_target,
+	temperature_base=temperature_at_sea_level,
+	lapse_rate=atmospheric_layers[0][-1],
+	R=R, g=g):
+	return (temperature_target/temperature_base)**(-g/(lapse_rate*R)-1)
+	
+def density_rate_stat(
+	height_target,
+	height_base=atmospheric_layers[0][1],
+	temperature_ambient=temperature_at_sea_level,
+	R=R, g=g):
+	return pressure_rate_stat(height_target, height_base, temperature_ambient, R, g)
+	
