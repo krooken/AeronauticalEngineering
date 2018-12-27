@@ -1,4 +1,5 @@
 import scipy
+import numpy as np
 
 # Constants
 
@@ -16,11 +17,12 @@ molar_mass_air = 28.97
 
 atmospheric_layers = [
 	('troposphere', 0.0, 11000.0, -0.0065),
-	('stratosphere', 11000.0, 20000.0, 0.001),
-	('stratosphere', 20000.0, 32000.0, 0.0028),
-	('stratosphere', 32000.0, 47000.0, 0.0),
-	('mesosphere', 47000.0, 51000.0, -0.0028),
-	('mesosphere', 51000.0, 71000.0, -0.002)
+	('stratosphere', 11000.0, 20000.0, 0.0),
+	('stratosphere', 20000.0, 32000.0, 0.001),
+	('stratosphere', 32000.0, 47000.0, 0.0028),
+	('mesosphere', 47000.0, 51000.0, 0.0),
+	('mesosphere', 51000.0, 71000.0, -0.0028),
+	('mesosphere', 71000.0, 84852.0, -0.002)
 	]
 
 def pressure(
@@ -89,3 +91,36 @@ def density_rate_stat(
 	R=R, g=g):
 	return pressure_rate_stat(height_target, height_base, temperature_ambient, R, g)
 	
+def atmospheric_details(
+	height_target,
+	temperature_ambient=temperature_at_sea_level,
+	pressure_ambient=pressure_at_sea_level,
+	density_ambient=density_air_at_sea_level,
+	R=R, g=g):
+	current_height = 0.0
+	current_temp = temperature_ambient
+	current_pressure = pressure_ambient
+	
+	for (name, height_low, height_high, lapse_rate) in atmospheric_layers:
+	
+		target = np.minimum(height_high, height_target)
+		
+		temp_diff = temperature_difference(target-current_height, lapse_rate)
+		new_temp = current_temp + temp_diff
+		
+		if lapse_rate != 0.0:
+			pressure_rate = pressure_rate_dyn(new_temp, current_temp, lapse_rate, R, g)
+		else:
+			pressure_rate = pressure_rate_stat(target, current_height, current_temp, R, g)
+			
+		new_pressure = current_pressure*pressure_rate
+		
+		current_height = target
+		current_temp = new_temp
+		current_pressure = new_pressure
+		
+		if target < height_high:
+			break
+	
+	current_density = density(current_pressure, current_temp, R)
+	return (current_temp, current_pressure, current_density)
