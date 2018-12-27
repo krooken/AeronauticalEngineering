@@ -6,6 +6,7 @@ import numpy as np
 R = 287.05
 K = 273.15
 g = 9.80665
+radius_earth_mean = 6378000.0
 
 temperature_at_sea_level = 15.0 + K
 pressure_at_sea_level = 101325
@@ -124,3 +125,9 @@ def atmospheric_details(
 	
 	current_density = density(current_pressure, current_temp, R)
 	return (current_temp, current_pressure, current_density)
+	
+def geopotential(geometric, radius_earth=radius_earth_mean):
+	return radius_earth/(radius_earth+geometric)*geometric
+	
+def geometric(geopotential, radius_earth=radius_earth_mean):
+	return radius_earth/(radius_earth-geopotential)*geopotential
