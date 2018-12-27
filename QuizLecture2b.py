@@ -1,4 +1,4 @@
-import StandardAtmosphere
+from .. import StandardAtmosphere
 import scipy
 
 '''An aircraft flies at an altitude of 30,000 feet. Determine the air temperature (in [K]),
