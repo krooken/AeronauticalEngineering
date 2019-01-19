@@ -91,6 +91,21 @@ def density_rate_stat(
 	temperature_ambient=temperature_at_sea_level,
 	R=R, g=g):
 	return pressure_rate_stat(height_target, height_base, temperature_ambient, R, g)
+
+def atmospheric_layer_details(hight_target, height_base, temperature, lapse_rate, 
+	pressure, R=R, g=g):
+	
+	temp_diff = temperature_difference(hight_target-height_base, lapse_rate)
+	temp_target = temperature+temp_diff
+	
+	if lapse_rate != 0.0:
+		pressure_rate = pressure_rate_dyn(temp_target, temperature, lapse_rate, R, g)
+	else:
+		pressure_rate = pressure_rate_stat(hight_target, height_base, temperature, R, g)
+	
+	pressure_target = pressure*pressure_rate
+	
+	return temp_target, pressure_target
 	
 def atmospheric_details(
 	height_target,
@@ -106,15 +121,8 @@ def atmospheric_details(
 	
 		target = np.minimum(height_high, height_target)
 		
-		temp_diff = temperature_difference(target-current_height, lapse_rate)
-		new_temp = current_temp + temp_diff
-		
-		if lapse_rate != 0.0:
-			pressure_rate = pressure_rate_dyn(new_temp, current_temp, lapse_rate, R, g)
-		else:
-			pressure_rate = pressure_rate_stat(target, current_height, current_temp, R, g)
-			
-		new_pressure = current_pressure*pressure_rate
+		(new_temp, new_pressure) = atmospheric_layer_details(target, current_height,
+			current_temp, lapse_rate, current_pressure, R, g)
 		
 		current_height = target
 		current_temp = new_temp
